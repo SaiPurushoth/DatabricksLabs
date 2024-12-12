@@ -36,8 +36,25 @@ DESCRIBE students
 
 -- COMMAND ----------
 
-SELECT email, ______________ AS student_surname, ______________ AS student_city
+CREATE OR REPLACE TEMP VIEW parsed_students AS (
+SELECT email, from_json(profile, schema_of_json('
+{"first_name":"Susana","last_name":"Gonnely","gender":"Female","address":{"street":"760 Express Court","city":"Obrenovac","country":"Serbia"}}')) AS profile_struct
+  FROM students );
+
+
+  select * from parsed_students;
+
+-- COMMAND ----------
+
+SELECT email, profile_struct.last_name AS student_surname, profile_struct.address.city AS student_city
+FROM parsed_students;
+
+-- COMMAND ----------
+
+-- Altenative Approach
+SELECT email, profile:last_name AS student_surname, profile:address:city AS student_city
 FROM students
+
 
 -- COMMAND ----------
 
@@ -61,7 +78,7 @@ FROM enrollments
 SELECT
   enroll_id,
   courses,
-  ______________ AS large_totals
+  filter(courses, i ->i.subtotal > 40 ) AS large_totals
 FROM enrollments
 
 -- COMMAND ----------
@@ -86,7 +103,13 @@ FROM enrollments
 
 -- COMMAND ----------
 
---------------------
+create or replace function get_letter_grade(gpa double)
+returns string
+return case when gpa >= 3.50 then 'A'
+            when gpa >= 2.75 then 'B'
+            when gpa >= 2.0 then 'C'
+            else 'F' 
+        end;
 
 -- COMMAND ----------
 
@@ -98,5 +121,5 @@ FROM enrollments
 
 -- COMMAND ----------
 
-SELECT student_id, gpa, _______________ as letter_grade
+SELECT student_id, gpa, get_letter_grade(gpa) as letter_grade
 FROM students

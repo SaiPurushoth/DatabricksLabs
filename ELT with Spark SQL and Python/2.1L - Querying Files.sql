@@ -21,7 +21,8 @@
 
 -- COMMAND ----------
 
---------------------
+
+select * from parquet.`${dataset.school}/enrollments`
 
 -- COMMAND ----------
 
@@ -30,7 +31,9 @@
 
 -- COMMAND ----------
 
---------------------
+create or replace table enrollments as (
+  select * from parquet.`${dataset.school}/enrollments`
+)
 
 -- COMMAND ----------
 
@@ -52,7 +55,9 @@ SELECT * FROM enrollments
 
 -- COMMAND ----------
 
---------------------
+create or replace table students as (
+  select * from json.`${dataset.school}/students-json`
+)
 
 -- COMMAND ----------
 
@@ -87,7 +92,14 @@ SELECT * FROM students
 
 -- COMMAND ----------
 
---------------------
+create or replace temp view courses_tmp_vw
+using CSV
+options (
+  header "true",
+  delimiter ";",
+  path "${dataset.school}/courses-csv"
+)
+
 
 -- COMMAND ----------
 
@@ -96,7 +108,9 @@ SELECT * FROM students
 
 -- COMMAND ----------
 
---------------------
+create table courses as (
+  select * from courses_tmp_vw
+)
 
 -- COMMAND ----------
 

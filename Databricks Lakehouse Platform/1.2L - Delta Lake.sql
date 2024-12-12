@@ -48,7 +48,11 @@ WHERE name = "Eric";
 
 -- COMMAND ----------
 
---------------------
+SELECT
+id,
+name,
+age
+FROM persons
 
 -- COMMAND ----------
 
@@ -59,7 +63,7 @@ WHERE name = "Eric";
 
 -- COMMAND ----------
 
---------------------
+describe history persons;
 
 -- COMMAND ----------
 
@@ -70,7 +74,7 @@ WHERE name = "Eric";
 
 -- COMMAND ----------
 
---------------------
+describe detail persons;
 
 -- COMMAND ----------
 
@@ -83,7 +87,7 @@ WHERE name = "Eric";
 
 -- COMMAND ----------
 
---------------------
+-- MAGIC %fs ls dbfs:/user/hive/warehouse/persons/
 
 -- COMMAND ----------
 
@@ -94,4 +98,8 @@ WHERE name = "Eric";
 
 -- COMMAND ----------
 
---------------------
+-- MAGIC %fs ls dbfs:/user/hive/warehouse/persons/_delta_log
+
+-- COMMAND ----------
+
+

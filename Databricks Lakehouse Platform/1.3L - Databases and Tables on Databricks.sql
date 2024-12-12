@@ -30,7 +30,12 @@ USE CATALOG hive_metastore;
 
 -- COMMAND ----------
 
---------------------
+create or replace table movies_managed(
+title string,
+category string,
+length float,
+release_date date
+)
 
 -- COMMAND ----------
 
@@ -61,7 +66,12 @@ DESCRIBE EXTENDED movies_managed
 
 -- COMMAND ----------
 
---------------------
+create or replace table actors_external (
+  actor_id int,
+  name string,
+  nationality string
+)
+location 'dbfs:/mnt/demo/actors_external'
 
 -- COMMAND ----------
 
@@ -85,7 +95,7 @@ DESCRIBE EXTENDED actors_external
 
 -- COMMAND ----------
 
---------------------
+drop table movies_managed;
 
 -- COMMAND ----------
 
@@ -126,7 +136,7 @@ DROP TABLE actors_external
 
 -- COMMAND ----------
 
---------------------
+CREATE SCHEMA IF NOT EXISTS db_cinema;
 
 -- COMMAND ----------
 
@@ -148,7 +158,7 @@ DESCRIBE DATABASE EXTENDED db_cinema
 
 -- COMMAND ----------
 
---------------------
+use db_cinema;
 
 
 CREATE TABLE movies
@@ -163,7 +173,8 @@ CREATE TABLE movies
 
 -- COMMAND ----------
 
---------------------
+create schema if not exists cinema_custom
+location 'dbfs:/Shared/schemas/';
 
 -- COMMAND ----------
 

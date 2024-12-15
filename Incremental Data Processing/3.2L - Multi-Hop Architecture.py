@@ -35,13 +35,13 @@ bronze_checkpoint_path = "dbfs:/mnt/DE-Associate/checkpoints/school/bronze"
 schema_location = bronze_checkpoint_path
 
 (spark.readStream
-        .___________________
-        .___________________
-        .___________________
+        .format('cloudFiles')
+        .option("cloudFiles.format", "json")
+        .option("cloudFiles.schemaLocation", schema_location)
         .load(dataset_source)
       .writeStream
-        .___________________
-        .___________________
+        .option("checkpointLocation", bronze_checkpoint_path)
+        .outputMode("append")
         .table("bronze")
 )
 
@@ -55,7 +55,7 @@ schema_location = bronze_checkpoint_path
 (spark
   .readStream
   .table("bronze")
-  .___________________("bronze_tmp"))
+  .createOrReplaceTempView("bronze_tmp"))
 
 # COMMAND ----------
 
@@ -70,8 +70,12 @@ schema_location = bronze_checkpoint_path
 
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW bronze_cleaned_tmp AS
-# MAGIC SELECT ___________________
-# MAGIC
+# MAGIC SELECT
+# MAGIC *,
+# MAGIC current_timestamp() AS processing_time
+# MAGIC FROM
+# MAGIC bronze_tmp
+# MAGIC where quantity > 0
 
 # COMMAND ----------
 
@@ -85,9 +89,9 @@ schema_location = bronze_checkpoint_path
 silver_checkpoint_path = "dbfs:/mnt/DE-Associate/checkpoints/school/silver"
 
 (spark.table("bronze_cleaned_tmp")
-        .___________________
-        .___________________
-        .___________________
+        .writeStream
+        .option("checkpointLocation", silver_checkpoint_path)
+        .outputMode("append")
         .table("silver")
 )
 
@@ -114,7 +118,10 @@ silver_checkpoint_path = "dbfs:/mnt/DE-Associate/checkpoints/school/silver"
 
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW enrollments_per_student_tmp_vw AS
-# MAGIC SELECT ___________________
+# MAGIC SELECT student_id,
+# MAGIC count(enroll_id) as enrollments_count
+# MAGIC from silver_tmp
+# MAGIC group by student_id
 # MAGIC
 
 # COMMAND ----------
@@ -129,8 +136,8 @@ gold_checkpoint_path = "dbfs:/mnt/DE-Associate/checkpoints/school/gold_enrollmen
 
 query = (spark.table("enrollments_per_student_tmp_vw")
               .writeStream
-              .___________________
-              .___________________
+              .option("checkpointLocation", gold_checkpoint_path)
+              .outputMode("complete")
               .table("gold_enrollments_stats"))
 
 # COMMAND ----------
@@ -150,7 +157,7 @@ query = (spark.table("enrollments_per_student_tmp_vw")
 
 # COMMAND ----------
 
-load_new_json_data()
+load_new_json_data(True)
 
 # COMMAND ----------
 

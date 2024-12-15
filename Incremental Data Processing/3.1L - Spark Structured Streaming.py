@@ -30,15 +30,20 @@
 
 # COMMAND ----------
 
+files = dbutils.fs.ls(f"{dataset_school}/enrollments-json-raw")
+display(files)
+
+# COMMAND ----------
+
 dataset_source = f"{dataset_school}/enrollments-json-raw"
 schema_location = "dbfs:/mnt/DE-Associate/checkpoints/school/enrollments_stats"
 
 
 (spark
   .readStream
-  .___________________
-  .___________________
-  .____________________
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.schemaLocation", schema_location)
   .load(dataset_source)
   .createOrReplaceTempView("enrollments_tmp_vw"))
 
@@ -54,8 +59,15 @@ schema_location = "dbfs:/mnt/DE-Associate/checkpoints/school/enrollments_stats"
 # MAGIC %sql
 # MAGIC
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW enrollments_per_student_tmp_vw AS
-# MAGIC SELECT ___________________
+# MAGIC SELECT student_id,count(enroll_id) as enrollments_counts
+# MAGIC from enrollments_tmp_vw
+# MAGIC group by student_id
 # MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from enrollments_per_student_tmp_vw
 
 # COMMAND ----------
 
@@ -68,11 +80,12 @@ schema_location = "dbfs:/mnt/DE-Associate/checkpoints/school/enrollments_stats"
 
 checkpoint_path = "dbfs:/mnt/DE-Associate/checkpoints/school/enrollments_stats"
 
-query = (spark._________________
-              ._________________
-              ._________________
-              ._________________
-              ._________________
+query = (spark.table('enrollments_per_student_tmp_vw')
+              .writeStream
+              .trigger(processingTime="10 seconds")
+              .outputMode("complete")
+              .option("checkpointLocation", checkpoint_path)
+              .table("enrollments_stats")
         )
 
 # COMMAND ----------
@@ -93,7 +106,7 @@ query = (spark._________________
 
 # COMMAND ----------
 
-load_new_json_data()
+load_new_json_data(True)
 
 # COMMAND ----------
 
